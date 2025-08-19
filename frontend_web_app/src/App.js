@@ -1,48 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
+import { useState } from 'react';
 import './App.css';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import EnrichmentForm from './components/EnrichmentForm';
+import ResultCard from './components/ResultCard';
+import { findEmail, findPhone, isAirscaleConfigured } from './services/airscaleService';
+import { logEnrichmentEvent } from './services/logger';
 
 // PUBLIC_INTERFACE
 function App() {
-  const [theme, setTheme] = useState('light');
+  const [loadingEmail, setLoadingEmail] = useState(false);
+  const [loadingPhone, setLoadingPhone] = useState(false);
+  const [emailResult, setEmailResult] = useState(null);
+  const [phoneResult, setPhoneResult] = useState(null);
+  const [airscaleConfig] = useState(isAirscaleConfigured());
 
-  // Effect to apply theme to document element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+  async function handleFindEmail(params) {
+    setLoadingEmail(true);
+    setEmailResult(null);
+    try {
+      const result = await findEmail(params);
+      setEmailResult(result);
+      // Fire-and-forget logging
+      logEnrichmentEvent('find_email', params, summarizeOutcome(result));
+    } finally {
+      setLoadingEmail(false);
+    }
+  }
+
+  async function handleFindPhone(params) {
+    setLoadingPhone(true);
+    setPhoneResult(null);
+    try {
+      const result = await findPhone(params);
+      setPhoneResult(result);
+      // Fire-and-forget logging
+      logEnrichmentEvent('find_phone', params, summarizeOutcome(result));
+    } finally {
+      setLoadingPhone(false);
+    }
+  }
 
   // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  function summarizeOutcome(result) {
+    /** Summarize the outcome to reduce payload size for logging. */
+    if (!result) return null;
+    const { status, mode, configured, error } = result;
+    let summary = { status, mode, configured };
+    if (status === 'success') {
+      if (mode === 'email') {
+        summary.email = result?.data?.email ?? result?.data?.data?.email ?? null;
+        summary.confidence = result?.data?.confidence ?? null;
+      } else if (mode === 'phone') {
+        summary.phone = result?.data?.phone ?? result?.data?.data?.phone ?? null;
+        summary.type = result?.data?.type ?? null;
+        summary.confidence = result?.data?.confidence ?? null;
+      }
+    } else if (status === 'error') {
+      summary.error = error || 'Unknown error';
+    }
+    return summary;
+    }
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Header />
+      <main className="wc-main">
+        <div className="wc-container">
+          {!airscaleConfig && (
+            <div className="wc-card">
+              <div className="wc-card-body">
+                <div className="wc-alert wc-alert-info">
+                  Airscale is not configured. The app is running in demo mode until you set
+                  REACT_APP_AIRSCALE_BASE_URL and REACT_APP_AIRSCALE_API_KEY in your environment.
+                </div>
+              </div>
+            </div>
+          )}
+
+          <EnrichmentForm
+            onFindEmail={handleFindEmail}
+            onFindPhone={handleFindPhone}
+            loadingEmail={loadingEmail}
+            loadingPhone={loadingPhone}
+          />
+
+          <ResultCard mode="email" loading={loadingEmail} result={emailResult} />
+          <ResultCard mode="phone" loading={loadingPhone} result={phoneResult} />
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }
 

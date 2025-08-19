@@ -1,104 +1,256 @@
-/* CSS Variables for Theme Management */
 :root {
-  /* Light theme colors */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --text-primary: #282c34;
-  --text-secondary: #61dafb;
-  --border-color: #e9ecef;
-  --button-bg: #007bff;
-  --button-text: #ffffff;
+  --wc-primary: #071D49;
+  --wc-secondary: #C8A25C;
+  --wc-accent: #3C7CBA;
+  --wc-bg: #F7F9FC;
+  --wc-text: #0B1221;
+  --wc-border: #E6EAF0;
+
+  --wc-success: #1F9D55;
+  --wc-danger: #C0342B;
+  --wc-info: #3C7CBA;
+
+  --radius: 12px;
+  --shadow: 0 6px 24px rgba(7, 29, 73, 0.08);
 }
 
-[data-theme="dark"] {
-  /* Dark theme colors */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #282c34;
-  --text-primary: #ffffff;
-  --text-secondary: #61dafb;
-  --border-color: #404040;
-  --button-bg: #0056b3;
-  --button-text: #ffffff;
+html, body, #root {
+  height: 100%;
 }
 
-.App {
-  text-align: center;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
+body {
+  background: var(--wc-bg);
+  color: var(--wc-text);
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.wc-container {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+.wc-header {
+  background: white;
+  border-bottom: 1px solid var(--wc-border);
+}
+
+.wc-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+}
+
+.wc-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--wc-primary), #0E2E70);
+  color: white;
+  display: grid;
+  place-items: center;
+}
+
+.wc-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--wc-primary);
+}
+
+.wc-subtitle {
+  margin: 2px 0 0 0;
+  color: #5E6C84;
+  font-size: 13px;
+}
+
+.wc-main {
+  padding: 32px 0 80px;
+}
+
+.wc-card {
+  background: white;
+  border: 1px solid var(--wc-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 16px 0;
+  overflow: hidden;
+}
+
+.wc-card-header {
+  padding: 20px 20px 0 20px;
+}
+
+.wc-card-header h2, .wc-card-header h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+}
+
+.wc-muted {
+  color: #6B778C;
+  font-size: 13px;
+  margin: 0 0 12px 0;
+}
+
+.wc-card-body {
+  padding: 0 20px 20px 20px;
+}
+
+.wc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .wc-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-.App-header {
-  background-color: var(--bg-secondary);
-  min-height: 100vh;
+.wc-field label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #3D4852;
+}
+
+.wc-field input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--wc-border);
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wc-field input:focus {
+  border-color: var(--wc-accent);
+  box-shadow: 0 0 0 3px rgba(60, 124, 186, 0.18);
+}
+
+.wc-error {
+  margin-top: 6px;
+  color: var(--wc-danger);
+  font-size: 12px;
+}
+
+.wc-actions {
   display: flex;
-  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.wc-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: var(--text-primary);
-  transition: background-color 0.3s ease;
-  position: relative;
-}
-
-.App-link {
-  color: var(--text-secondary);
-  transition: color 0.3s ease;
-}
-
-.theme-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: var(--button-bg);
-  color: var(--button-text);
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 0.05s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
 }
 
-.theme-toggle:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  opacity: 0.9;
+.wc-btn[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
-.theme-toggle:active {
-  transform: translateY(0);
+.wc-btn:active {
+  transform: translateY(1px);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.wc-btn-primary {
+  background: var(--wc-primary);
+  color: white;
 }
 
-/* Responsive design for mobile */
-@media (max-width: 768px) {
-  .theme-toggle {
-    top: 10px;
-    right: 10px;
-    padding: 8px 16px;
-    font-size: 12px;
-  }
+.wc-btn-secondary {
+  background: var(--wc-secondary);
+  color: #0B0E15;
+}
+
+.wc-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 3px solid #E6EAF0;
+  border-top-color: var(--wc-accent);
+  animation: spin 0.8s linear infinite;
+  margin: 12px 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.wc-kv {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.wc-k {
+  width: 120px;
+  font-weight: 600;
+  color: #3D4852;
+  font-size: 14px;
+}
+
+.wc-v {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  background: #F4F6FA;
+  border: 1px solid var(--wc-border);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.wc-raw {
+  margin-top: 10px;
+}
+
+.wc-raw summary {
+  cursor: pointer;
+  color: var(--wc-accent);
+}
+
+.wc-alert {
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  margin: 6px 0;
+}
+
+.wc-alert-danger {
+  background: #FDF3F3;
+  color: #7F1D1D;
+  border: 1px solid #F7D8D6;
+}
+
+.wc-alert-info {
+  background: #F1F7FF;
+  color: #0E3A75;
+  border: 1px solid #D6E6FF;
+}
+
+.wc-footer {
+  margin-top: 24px;
+  padding: 18px 0 24px;
+  border-top: 1px solid var(--wc-border);
+  color: #6B778C;
+  font-size: 12px;
+  text-align: center;
+}
+
+.wc-footer a {
+  color: var(--wc-accent);
 }
