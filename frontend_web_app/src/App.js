@@ -4,7 +4,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import EnrichmentForm from './components/EnrichmentForm';
 import ResultCard from './components/ResultCard';
-import { findEmail, findPhone, isAirscaleConfigured } from './services/airscaleService';
+import { findEmail, findPhone, isEnrichmentConfigured } from './services/enrichmentService';
 import { logEnrichmentEvent } from './services/logger';
 
 // PUBLIC_INTERFACE
@@ -13,7 +13,7 @@ function App() {
   const [loadingPhone, setLoadingPhone] = useState(false);
   const [emailResult, setEmailResult] = useState(null);
   const [phoneResult, setPhoneResult] = useState(null);
-  const [airscaleConfig] = useState(isAirscaleConfigured());
+  const [enrichmentConfigured] = useState(isEnrichmentConfigured());
 
   async function handleFindEmail(params) {
     setLoadingEmail(true);
@@ -67,12 +67,13 @@ function App() {
       <Header />
       <main className="wc-main">
         <div className="wc-container">
-          {!airscaleConfig && (
+          {!enrichmentConfigured && (
             <div className="wc-card">
               <div className="wc-card-body">
                 <div className="wc-alert wc-alert-info">
-                  Backend proxy is not configured. The app may return demo results until the server
-                  is set up with AIRSCALE_API_KEY. See DEPLOYMENT.md for instructions.
+                  Scale Labs Proprietary Lead Enrichment backend proxy is not fully configured.
+                  The app may return demo results until the server is set up with ENRICHMENT_PROVIDER_API_KEY.
+                  See DEPLOYMENT.md for instructions.
                 </div>
               </div>
             </div>

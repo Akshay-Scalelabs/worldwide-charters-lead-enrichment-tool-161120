@@ -1,9 +1,13 @@
 /**
- * Secure Airscale Proxy Server
+ * Secure Scale Labs Enrichment Proxy Server
  * - Exposes POST /api/email and POST /api/phone
- * - Forwards to Airscale using server-side AIRSCALE_API_KEY
+ * - Forwards to upstream enrichment provider using server-side ENRICHMENT_PROVIDER_API_KEY
  * - Enables CORS for local dev and configurable origins for production
  * - Never exposes API key to the browser
+ *
+ * Notes:
+ * - Environment variable names are generic/internal. For backward compatibility,
+ *   legacy AIRSCALE_* variables are supported as fallbacks.
  */
 import express from 'express';
 import cors from 'cors';
@@ -16,9 +20,20 @@ const app = express();
 
 // Configuration
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5001;
-const AIRSCALE_BASE_URL = (process.env.AIRSCALE_BASE_URL || 'https://api.airscale.io').replace(/\/+$/, '');
-const AIRSCALE_API_KEY = process.env.AIRSCALE_API_KEY || '';
-const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:3000').split(',').map((s) => s.trim()).filter(Boolean);
+const PROVIDER_BASE_URL = (
+  process.env.ENRICHMENT_PROVIDER_BASE_URL ||
+  process.env.AIRSCALE_BASE_URL || // backward compat
+  'https://api.airscale.io' // default upstream; can be overridden via env
+).replace(/\/+$/, '');
+const PROVIDER_API_KEY = (
+  process.env.ENRICHMENT_PROVIDER_API_KEY ||
+  process.env.AIRSCALE_API_KEY || // backward compat
+  ''
+);
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 // Middleware
 app.use(express.json({ limit: '1mb' }));
@@ -42,25 +57,25 @@ app.use(cors(corsOptions));
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'airscale-proxy',
-    hasApiKey: Boolean(AIRSCALE_API_KEY),
+    service: 'enrichment-proxy',
+    hasApiKey: Boolean(PROVIDER_API_KEY),
   });
 });
 
 // Helper: robust fetch wrapper using Node 18+ global fetch
-async function forwardToAirscale(path, payload) {
-  if (!AIRSCALE_API_KEY) {
-    const err = new Error('AIRSCALE_API_KEY is not set on the server');
+async function forwardToProvider(path, payload) {
+  if (!PROVIDER_API_KEY) {
+    const err = new Error('ENRICHMENT_PROVIDER_API_KEY is not set on the server');
     err.code = 'PROXY_NOT_CONFIGURED';
     throw err;
   }
 
-  const url = `${AIRSCALE_BASE_URL}${path}`;
+  const url = `${PROVIDER_BASE_URL}${path}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${AIRSCALE_API_KEY}`,
+      Authorization: `Bearer ${PROVIDER_API_KEY}`,
     },
     body: JSON.stringify(payload || {}),
   });
@@ -74,7 +89,7 @@ async function forwardToAirscale(path, payload) {
   }
 
   if (!res.ok) {
-    const err = new Error(`Upstream Airscale error ${res.status}`);
+    const err = new Error(`Upstream enrichment provider error ${res.status}`);
     err.status = res.status;
     err.upstream = data;
     throw err;
@@ -102,15 +117,15 @@ app.post('/api/email', async (req, res) => {
     }
 
     const payload = req.body;
-    // Request details specify endpoints:
-    // - email: https://api.airscale.io/v1/email
-    const data = await forwardToAirscale('/v1/email', payload);
+    // Example upstream endpoints (configurable via PROVIDER_BASE_URL):
+    // - email: <base-url>/v1/email
+    const data = await forwardToProvider('/v1/email', payload);
     return res.status(200).json(data);
   } catch (err) {
     if (err.code === 'PROXY_NOT_CONFIGURED') {
       return res.status(503).json({
         error: 'proxy_not_configured',
-        message: 'Server missing AIRSCALE_API_KEY. Set it in the backend environment.',
+        message: 'Server missing ENRICHMENT_PROVIDER_API_KEY. Set it in the backend environment.',
       });
     }
     const status = err.status && Number.isInteger(err.status) ? err.status : 500;
@@ -130,15 +145,15 @@ app.post('/api/phone', async (req, res) => {
     }
 
     const payload = req.body;
-    // Request details specify endpoints:
-    // - phone: https://api.airscale.io/v1/phone
-    const data = await forwardToAirscale('/v1/phone', payload);
+    // Example upstream endpoints (configurable via PROVIDER_BASE_URL):
+    // - phone: <base-url>/v1/phone
+    const data = await forwardToProvider('/v1/phone', payload);
     return res.status(200).json(data);
   } catch (err) {
     if (err.code === 'PROXY_NOT_CONFIGURED') {
       return res.status(503).json({
         error: 'proxy_not_configured',
-        message: 'Server missing AIRSCALE_API_KEY. Set it in the backend environment.',
+        message: 'Server missing ENRICHMENT_PROVIDER_API_KEY. Set it in the backend environment.',
       });
     }
     const status = err.status && Number.isInteger(err.status) ? err.status : 500;
@@ -164,6 +179,8 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`[proxy] Airscale proxy server running on http://localhost:${PORT}`);
-  console.log(`[proxy] CORS allowed origins: ${isProd ? CORS_ORIGINS.join(', ') || '(none)' : 'ALL (development)'}`);
+  console.log(`[proxy] Scale Labs enrichment proxy server running on http://localhost:${PORT}`);
+  console.log(
+    `[proxy] CORS allowed origins: ${isProd ? CORS_ORIGINS.join(', ') || '(none)' : 'ALL (development)'}`
+  );
 });

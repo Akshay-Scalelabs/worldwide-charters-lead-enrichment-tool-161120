@@ -11,7 +11,7 @@ Target domain: leads.worldwidecharterint.com
 - Frontend: React app (builds to static files)
 - Backend: Node.js/Express proxy located at `backend_proxy/`
   - Exposes `POST /api/email` and `POST /api/phone`
-  - Uses server-side `AIRSCALE_API_KEY` to call Airscale
+  - Uses server-side ENRICHMENT_PROVIDER_API_KEY to call the upstream enrichment provider
   - CORS enabled for local dev, configurable for production
 
 In production, the web server should serve the static frontend and reverse proxy `/api` to the Node backend.
@@ -45,11 +45,13 @@ This generates `frontend_web_app/build/` with static files.
 Create a `.env` file in `worldwide-charters-lead-enrichment-tool-161120/backend_proxy/`:
 
 ```
-AIRSCALE_API_KEY=YOUR_AIRSCALE_API_KEY
-AIRSCALE_BASE_URL=https://api.airscale.io
+ENRICHMENT_PROVIDER_API_KEY=YOUR_PROVIDER_API_KEY
+ENRICHMENT_PROVIDER_BASE_URL=https://api.your-provider.tld
 PORT=5001
 CORS_ORIGINS=https://leads.worldwidecharterint.com
 ```
+
+Tip: A sample file exists at `backend_proxy/.env.example`.
 
 Install and start:
 
@@ -96,15 +98,16 @@ sudo certbot --nginx -d leads.worldwidecharterint.com
 
 ## 6) Environment and security notes
 
-- Never expose `AIRSCALE_API_KEY` to the frontend (client code).
-- Keep the key only on the server and pass to Airscale via the backend proxy.
+- Never expose ENRICHMENT_PROVIDER_API_KEY to the frontend (client code).
+- Keep the key only on the server and pass to the upstream provider via the backend proxy.
 - Limit `CORS_ORIGINS` to your production domain(s).
 - Ensure the backend port (`5001`) is not publicly exposed (bind to loopback or firewall).
+- Backward compatibility: the proxy will also read `AIRSCALE_API_KEY` and `AIRSCALE_BASE_URL` if present, but new deployments should use the generic names above.
 
 ## 7) Local development
 
 - Backend:
-  - `cd backend_proxy && cp .env.example .env` (fill in `AIRSCALE_API_KEY` if you want live calls)
+  - `cd backend_proxy && cp .env.example .env` (fill in ENRICHMENT_PROVIDER_API_KEY if you want live calls)
   - `npm ci && npm start` (starts on http://localhost:5001)
 - Frontend:
   - `cd frontend_web_app && npm ci && npm start` (starts on http://localhost:3000)
@@ -118,6 +121,6 @@ sudo certbot --nginx -d leads.worldwidecharterint.com
 
 ## 9) Troubleshooting
 
-- 503 from `/api/*`: backend not configured; set `AIRSCALE_API_KEY` and restart server.
+- 503 from `/api/*`: backend not configured; set `ENRICHMENT_PROVIDER_API_KEY` and restart server.
 - CORS errors: ensure `CORS_ORIGINS` includes the site origin exactly (including scheme, domain).
 - 404 for `/api/*`: check Nginx proxy configuration and that backend is running and reachable.

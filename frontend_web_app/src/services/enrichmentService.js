@@ -1,7 +1,7 @@
 /**
- * Airscale API service wrapper now calls a secure backend proxy.
+ * Scale Labs Proprietary Lead Enrichment - Client Service
+ * Calls a secure backend proxy (no client secrets) for enrichment actions.
  * Provides two public methods: findEmail and findPhone.
- * The backend proxy uses a server-side AIRSCALE_API_KEY. No client secrets are used.
  */
 
 // Base path for the backend proxy; relative path works in production behind same origin.
@@ -10,13 +10,13 @@ const PROXY_BASE = '/api';
 
 /**
  * PUBLIC_INTERFACE
- * isAirscaleConfigured
- * Returns whether Airscale is configured for use. With the backend proxy, this is presumed true.
- * If the backend is not configured (no AIRSCALE_API_KEY), the proxy will respond with 503 and
+ * isEnrichmentConfigured
+ * Returns whether enrichment is configured for use. With the backend proxy, this is presumed true.
+ * If the backend is not configured (no ENRICHMENT_PROVIDER_API_KEY), the proxy will respond with 503 and
  * we will gracefully fall back to demo responses.
  * @returns {boolean}
  */
-export function isAirscaleConfigured() {
+export function isEnrichmentConfigured() {
   return true;
 }
 
@@ -37,13 +37,13 @@ export async function findEmail(params) {
     });
 
     if (res.status === 503) {
-      // Proxy not configured (e.g., missing AIRSCALE_API_KEY on server)
+      // Proxy not configured (e.g., missing ENRICHMENT_PROVIDER_API_KEY on server)
       return {
         configured: false,
         mode: 'email',
         status: 'not_configured',
         message:
-          'Backend proxy is not configured. Ensure AIRSCALE_API_KEY is set on the server.',
+          'Backend proxy is not configured for Scale Labs Proprietary Lead Enrichment. Ensure ENRICHMENT_PROVIDER_API_KEY is set on the server.',
         data: demoEmail(params),
         demo: true,
       };
@@ -89,13 +89,13 @@ export async function findPhone(params) {
     });
 
     if (res.status === 503) {
-      // Proxy not configured (e.g., missing AIRSCALE_API_KEY on server)
+      // Proxy not configured (e.g., missing ENRICHMENT_PROVIDER_API_KEY on server)
       return {
         configured: false,
         mode: 'phone',
         status: 'not_configured',
         message:
-          'Backend proxy is not configured. Ensure AIRSCALE_API_KEY is set on the server.',
+          'Backend proxy is not configured for Scale Labs Proprietary Lead Enrichment. Ensure ENRICHMENT_PROVIDER_API_KEY is set on the server.',
         data: demoPhone(params),
         demo: true,
       };
@@ -135,7 +135,8 @@ function demoEmail(params) {
     email,
     confidence: 0.78,
     source: 'demo',
-    note: 'Demo mode: configure backend AIRSCALE_API_KEY to get live results.',
+    note:
+      'Demo mode: configure backend ENRICHMENT_PROVIDER_API_KEY to get live results.',
   };
 }
 
@@ -146,6 +147,7 @@ function demoPhone(params) {
     type: 'mobile',
     confidence: 0.71,
     source: 'demo',
-    note: 'Demo mode: configure backend AIRSCALE_API_KEY to get live results.',
+    note:
+      'Demo mode: configure backend ENRICHMENT_PROVIDER_API_KEY to get live results.',
   };
 }

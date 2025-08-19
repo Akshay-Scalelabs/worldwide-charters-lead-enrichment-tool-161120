@@ -1,18 +1,14 @@
-# Airscale Integration Notes
+# Scale Labs Proprietary Lead Enrichment - Frontend Integration Notes
 
-The app uses a secure backend proxy for Airscale requests. The frontend does NOT store or use any Airscale credentials.
+The app uses a secure backend proxy for all enrichment requests. The frontend does NOT store or use any provider credentials.
 
 - Frontend calls (no auth headers from the browser):
   - POST /api/email
   - POST /api/phone
 
-- Backend (Node.js/Express) forwards requests to Airscale using a server-side API key:
-  - AIRSCALE_API_KEY must be set on the backend server (never expose this to the client).
-  - Optional: AIRSCALE_BASE_URL (defaults to https://api.airscale.io)
-
-- Airscale upstream endpoints used by the proxy:
-  - POST https://api.airscale.io/v1/email
-  - POST https://api.airscale.io/v1/phone
+- Backend (Node.js/Express) forwards requests to the upstream enrichment provider using a server-side API key:
+  - ENRICHMENT_PROVIDER_API_KEY must be set on the backend server (never expose this to the client).
+  - ENRICHMENT_PROVIDER_BASE_URL configures the upstream API base URL.
 
 - Expected request payload (example):
 ```json
@@ -26,11 +22,11 @@ The app uses a secure backend proxy for Airscale requests. The frontend does NOT
 ```
 
 - Demo mode:
-  - If the backend proxy is not configured (missing AIRSCALE_API_KEY) or not reachable, the frontend returns a synthetic demo response to preserve UX.
+  - If the backend proxy is not configured (missing ENRICHMENT_PROVIDER_API_KEY) or not reachable, the frontend returns a synthetic demo response to preserve UX.
 
 - Local development:
   - Backend: run from `backend_proxy` (http://localhost:5001)
-    - `cp .env.example .env` and set AIRSCALE_API_KEY if you want live calls
+    - `cp .env.example .env` and set ENRICHMENT_PROVIDER_API_KEY if you want live calls
     - `npm ci && npm start`
   - Frontend: run from `frontend_web_app` (http://localhost:3000)
     - `npm ci && npm start`
@@ -40,8 +36,8 @@ The app uses a secure backend proxy for Airscale requests. The frontend does NOT
   - Serve the built frontend (static files) on leads.worldwidecharterint.com
   - Reverse proxy `/api` to the Node backend
   - Set environment variables on the backend host:
-    - AIRSCALE_API_KEY=YOUR_AIRSCALE_API_KEY
-    - AIRSCALE_BASE_URL=https://api.airscale.io
+    - ENRICHMENT_PROVIDER_API_KEY=YOUR_PROVIDER_API_KEY
+    - ENRICHMENT_PROVIDER_BASE_URL=https://api.your-provider.tld
     - PORT=5001
     - CORS_ORIGINS=https://leads.worldwidecharterint.com
   - See DEPLOYMENT.md for a full example with Nginx.

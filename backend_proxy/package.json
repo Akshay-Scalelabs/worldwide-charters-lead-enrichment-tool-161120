@@ -1,8 +1,8 @@
 {
-  "name": "airscale-proxy",
+  "name": "enrichment-proxy",
   "version": "1.0.0",
   "private": true,
-  "description": "Secure proxy for Airscale API requests",
+  "description": "Secure proxy for Scale Labs proprietary lead enrichment provider",
   "type": "module",
   "main": "server.js",
   "scripts": {
