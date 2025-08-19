@@ -1,56 +1,57 @@
 /**
- * Airscale API service wrapper with configuration detection.
+ * Airscale API service wrapper now calls a secure backend proxy.
  * Provides two public methods: findEmail and findPhone.
- * If AIRSCALE env variables are not set, functions return a demo response.
+ * The backend proxy uses a server-side AIRSCALE_API_KEY. No client secrets are used.
  */
 
-const BASE_URL = process.env.REACT_APP_AIRSCALE_BASE_URL;
-const API_KEY = process.env.REACT_APP_AIRSCALE_API_KEY;
+// Base path for the backend proxy; relative path works in production behind same origin.
+// During development, CRA's "proxy" field forwards /api requests to the backend server.
+const PROXY_BASE = '/api';
 
 /**
  * PUBLIC_INTERFACE
  * isAirscaleConfigured
- * Returns whether Airscale credentials are set.
+ * Returns whether Airscale is configured for use. With the backend proxy, this is presumed true.
+ * If the backend is not configured (no AIRSCALE_API_KEY), the proxy will respond with 503 and
+ * we will gracefully fall back to demo responses.
  * @returns {boolean}
  */
 export function isAirscaleConfigured() {
-  return Boolean(BASE_URL && API_KEY);
+  return true;
 }
 
 /**
  * PUBLIC_INTERFACE
  * findEmail
- * Attempts to enrich a contact's email via Airscale. If not configured, returns demo response.
+ * Attempts to enrich a contact's email via the backend proxy.
+ * If the proxy is not configured, returns a demo response with a helpful message.
  * @param {object} params - Search params { fullName, company, domain, linkedinUrl, location }
  * @returns {Promise<object>} Result wrapper with status and data/message.
  */
 export async function findEmail(params) {
-  if (!isAirscaleConfigured()) {
-    return {
-      configured: false,
-      mode: 'email',
-      status: 'not_configured',
-      message:
-        'Airscale is not configured. Set REACT_APP_AIRSCALE_API_KEY and REACT_APP_AIRSCALE_BASE_URL to enable live lookups.',
-      data: demoEmail(params),
-      demo: true,
-    };
-  }
-
   try {
-    // NOTE: Endpoint path is a placeholder. Update according to real Airscale API.
-    const res = await fetch(`${BASE_URL}/v1/enrich/email`, {
+    const res = await fetch(`${PROXY_BASE}/email`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
 
+    if (res.status === 503) {
+      // Proxy not configured (e.g., missing AIRSCALE_API_KEY on server)
+      return {
+        configured: false,
+        mode: 'email',
+        status: 'not_configured',
+        message:
+          'Backend proxy is not configured. Ensure AIRSCALE_API_KEY is set on the server.',
+        data: demoEmail(params),
+        demo: true,
+      };
+    }
+
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`Airscale error ${res.status}: ${text}`);
+      throw new Error(`Proxy error ${res.status}: ${text}`);
     }
 
     const data = await res.json();
@@ -74,37 +75,35 @@ export async function findEmail(params) {
 /**
  * PUBLIC_INTERFACE
  * findPhone
- * Attempts to enrich a contact's phone via Airscale. If not configured, returns demo response.
+ * Attempts to enrich a contact's phone via the backend proxy.
+ * If the proxy is not configured, returns a demo response with a helpful message.
  * @param {object} params - Search params { fullName, company, domain, linkedinUrl, location }
  * @returns {Promise<object>} Result wrapper with status and data/message.
  */
 export async function findPhone(params) {
-  if (!isAirscaleConfigured()) {
-    return {
-      configured: false,
-      mode: 'phone',
-      status: 'not_configured',
-      message:
-        'Airscale is not configured. Set REACT_APP_AIRSCALE_API_KEY and REACT_APP_AIRSCALE_BASE_URL to enable live lookups.',
-      data: demoPhone(params),
-      demo: true,
-    };
-  }
-
   try {
-    // NOTE: Endpoint path is a placeholder. Update according to real Airscale API.
-    const res = await fetch(`${BASE_URL}/v1/enrich/phone`, {
+    const res = await fetch(`${PROXY_BASE}/phone`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
 
+    if (res.status === 503) {
+      // Proxy not configured (e.g., missing AIRSCALE_API_KEY on server)
+      return {
+        configured: false,
+        mode: 'phone',
+        status: 'not_configured',
+        message:
+          'Backend proxy is not configured. Ensure AIRSCALE_API_KEY is set on the server.',
+        data: demoPhone(params),
+        demo: true,
+      };
+    }
+
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`Airscale error ${res.status}: ${text}`);
+      throw new Error(`Proxy error ${res.status}: ${text}`);
     }
 
     const data = await res.json();
@@ -125,7 +124,7 @@ export async function findPhone(params) {
   }
 }
 
-// Demo helpers
+// Demo helpers (for UX continuity when backend isn't configured)
 function demoEmail(params) {
   const { fullName = 'Jane Doe', domain = 'example.com' } = params || {};
   const email =
@@ -136,7 +135,7 @@ function demoEmail(params) {
     email,
     confidence: 0.78,
     source: 'demo',
-    note: 'Demo mode: configure Airscale to get live results.',
+    note: 'Demo mode: configure backend AIRSCALE_API_KEY to get live results.',
   };
 }
 
@@ -147,6 +146,6 @@ function demoPhone(params) {
     type: 'mobile',
     confidence: 0.71,
     source: 'demo',
-    note: 'Demo mode: configure Airscale to get live results.',
+    note: 'Demo mode: configure backend AIRSCALE_API_KEY to get live results.',
   };
 }

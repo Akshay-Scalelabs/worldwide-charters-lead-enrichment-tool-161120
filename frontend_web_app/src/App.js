@@ -71,8 +71,8 @@ function App() {
             <div className="wc-card">
               <div className="wc-card-body">
                 <div className="wc-alert wc-alert-info">
-                  Airscale is not configured. The app is running in demo mode until you set
-                  REACT_APP_AIRSCALE_BASE_URL and REACT_APP_AIRSCALE_API_KEY in your environment.
+                  Backend proxy is not configured. The app may return demo results until the server
+                  is set up with AIRSCALE_API_KEY. See DEPLOYMENT.md for instructions.
                 </div>
               </div>
             </div>
