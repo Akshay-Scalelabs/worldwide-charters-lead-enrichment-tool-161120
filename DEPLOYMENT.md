@@ -1,5 +1,7 @@
 # Deployment Guide - Worldwide Charters Lead Enrichment Tool
 
+Note: A comprehensive and up-to-date deployment guide is maintained at kavia-docs/deployment-unified-host.md. This file provides a concise summary and keeps the original NGINX example for convenience.
+
 This guide explains how to deploy the frontend app and the secure backend proxy on a custom subdomain.
 
 Target domain: leads.worldwidecharterint.com
